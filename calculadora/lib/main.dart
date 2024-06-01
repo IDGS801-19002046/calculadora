@@ -4,16 +4,18 @@ void main() {
   runApp(const MainApp());
 }
 
-String operacion1 = "";
-String operacion2 = "";
+String numero = "";
+String operador = "";
+double res_numerico = 0;
 String resultado = "";
+TextEditingController _controller = TextEditingController(text: "");
 
 class MainApp extends StatelessWidget {
   const MainApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         body: Padding(
@@ -25,9 +27,14 @@ class MainApp extends StatelessWidget {
   }
 }
 
-class ContainerGrid extends StatelessWidget {
+class ContainerGrid extends StatefulWidget {
   const ContainerGrid({super.key});
 
+  @override
+  _ContainerGridState createState() => _ContainerGridState();
+}
+
+class _ContainerGridState extends State<ContainerGrid> {
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -36,21 +43,18 @@ class ContainerGrid extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.all(15.0),
           child: TextField(
-            onSubmitted: (String str) {
-              // Acción a realizar cuando se envía el texto
-            },
-            autofocus: true,
-            maxLength: 8,
+            readOnly: true,
+            controller: _controller,
             decoration: InputDecoration(
               prefixIcon: Icon(Icons.numbers),
               fillColor: Color.fromARGB(255, 255, 255, 255),
               filled: true,
-              labelText: "Click",
-              iconColor: Color.fromARGB(255, 133, 134, 61),
+              labelText: "Operación",
+              iconColor: Color.fromARGB(255, 162, 227, 231),
               border: OutlineInputBorder(),
             ),
             style: const TextStyle(
-              color: Colors.red,
+              color: Color.fromARGB(255, 53, 89, 207),
               fontSize: 26,
               fontWeight: FontWeight.bold,
               fontFamily: "Arial",
@@ -78,7 +82,7 @@ class ContainerGrid extends StatelessWidget {
                 buildContainer("3"),
                 buildContainer("6"),
                 buildContainer("9"),
-                buildContainer("="),
+                buildContainer("="), // Eliminar el gesto de cálculo
               ]),
               buildColumn([
                 buildContainer("+"),
@@ -103,14 +107,37 @@ class ContainerGrid extends StatelessWidget {
   Widget buildContainer(String text) {
     return GestureDetector(
       onTap: () {
-        if (text != "+" || text != "-" || text != "*" || text != "/") {
-          operacion1 += text;
-        }
+        setState(() {
+          if (text == "=") {
+            if (operador.isNotEmpty && numero.isNotEmpty) {
+              realizarOperacion(double.parse(numero));
+              resultado = res_numerico.toString();
+              operador = "";
+              numero = "";
+            }
+          } else if (text == "+" || text == "-" || text == "x" || text == "/") {
+            if (operador.isNotEmpty && numero.isNotEmpty) {
+              realizarOperacion(double.parse(numero));
+            } else if (numero.isNotEmpty) {
+              res_numerico = double.parse(numero);
+            }
+            operador = text;
+            numero = "";
+            resultado += text;
+          } else {
+            numero += text;
+            resultado += text;
+          }
+          _controller.text = resultado;
+        });
       },
       child: Container(
         width: 80,
         height: 80,
-        color: Color.fromARGB(255, 76, 145, 172),
+        decoration: BoxDecoration(
+          color: Color.fromARGB(255, 76, 145, 172),
+          shape: BoxShape.circle,
+        ),
         child: Center(
           child: Text(
             text,
@@ -124,5 +151,22 @@ class ContainerGrid extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void realizarOperacion(double num) {
+    switch (operador) {
+      case "+":
+        res_numerico += num;
+        break;
+      case "-":
+        res_numerico -= num;
+        break;
+      case "/":
+        res_numerico /= num;
+        break;
+      case "x":
+        res_numerico *= num;
+        break;
+    }
   }
 }
